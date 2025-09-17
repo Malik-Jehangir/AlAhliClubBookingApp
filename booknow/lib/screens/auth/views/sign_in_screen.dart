@@ -48,7 +48,7 @@ class _SignInScreenState extends State<SignInScreen> {
           const SizedBox(height: 40),
             Center(
               child: Image.asset(
-                'assets/1.png',
+                'assets/0.png',
                 height: 90,
                 fit: BoxFit.contain,
               ),
