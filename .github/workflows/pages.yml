@@ -34,7 +34,8 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href /AlAhliClubBookingApp/ --pwa-strategy=none
+        run: flutter build web --release --base-href /AlAhliClubBookingApp/ --web-renderer html --pwa-strategy=none
+
 
       - name: SPA 404
         run: cp build/web/index.html build/web/404.html
