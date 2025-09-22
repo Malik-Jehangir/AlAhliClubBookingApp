@@ -20,6 +20,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   static const kMaroon = Color(0xFF7B1E1E);
   static const kMaroonDark = Color(0xFF5D1616);
 
+  // Reusable gradient for header & footer
+  LinearGradient get _headerFooterGradient => const LinearGradient(
+        colors: [
+          Color.fromARGB(255, 80, 5, 5), // primary
+          Color.fromARGB(255, 243, 203, 84), // tertiary
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+
   final _pageCtrl = PageController();
   final _slides = const [
     _Slide('assets/1.png', 'Book Top Venues', 'Fast, simple, reliable.'),
@@ -52,17 +62,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Future<void> _guestLogin() async {
-    // Wire to your auth flow if needed, e.g.:
-    // context.read<AuthenticationBloc>().add(GuestLoginRequested());
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Guest mode enabled')),
     );
-    // Optionally go to home:
-    // _onStartBooking();
   }
 
   void _onStartBooking() {
-    // Go to HomeScreen and provide SignInBloc (same as your MyAppView)
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (ctx) => BlocProvider<SignInBloc>(
@@ -83,7 +88,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       backgroundColor: theme.colorScheme.background,
       body: Stack(
         children: [
-          // soft blobs (subtle background)
+          // background blobs
           Align(
             alignment: const AlignmentDirectional(20, -1.2),
             child: Container(
@@ -110,10 +115,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
           CustomScrollView(
             slivers: [
-              // ===== HEADER (maroon) =====
+              // ===== HEADER (gradient) =====
               SliverToBoxAdapter(
                 child: Container(
-                  color: kMaroon,
+                  decoration: BoxDecoration(gradient: _headerFooterGradient),
                   child: SafeArea(
                     bottom: false,
                     child: Center(
@@ -135,7 +140,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
               ),
 
-              // ===== HERO SLIDESHOW + CENTER CTA =====
+              // ===== HERO SLIDESHOW + CTA =====
               SliverToBoxAdapter(
                 child: Center(
                   child: ConstrainedBox(
@@ -153,7 +158,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
               ),
 
-              // ===== ABOUT (alternating) =====
+              // ===== ABOUT =====
               SliverToBoxAdapter(
                 child: Center(
                   child: ConstrainedBox(
@@ -184,17 +189,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
               ),
 
-              // ===== FOOTER (maroon) =====
+              // ===== FOOTER (gradient) =====
               SliverToBoxAdapter(
                 child: Container(
-                  color: kMaroon,
+                  decoration: BoxDecoration(gradient: _headerFooterGradient),
                   padding: const EdgeInsets.symmetric(vertical: 28),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: _maxWidth),
                       child: const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: _Footer(), // footer uses white text/icons over maroon
+                        child: _Footer(),
                       ),
                     ),
                   ),
@@ -209,7 +214,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 }
 
 /* ---------------- HEADER ---------------- */
-
 class _Header extends StatelessWidget {
   const _Header({
     required this.maroon,
@@ -324,7 +328,6 @@ class _IconAction extends StatelessWidget {
 }
 
 /* ---------------- HERO ---------------- */
-
 class _Hero extends StatelessWidget {
   const _Hero({
     required this.pageCtrl,
@@ -377,7 +380,6 @@ class _Hero extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // headline/sub (left/bottom)
                       Align(
                         alignment: isDesktop ? Alignment.centerLeft : Alignment.bottomLeft,
                         child: Padding(
@@ -415,32 +417,54 @@ class _Hero extends StatelessWidget {
               ),
             ),
 
-            // CENTER CTA BUTTON
-            ElevatedButton.icon(
-              onPressed: onStartBooking,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: maroon,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isDesktop ? 28 : 22,
-                  vertical: isDesktop ? 16 : 12,
-                ),
-                shape: const StadiumBorder(),
-                elevation: 6,
-              ).copyWith(
-                overlayColor: WidgetStateProperty.all(maroonDark),
-              ),
-              icon: const Icon(Icons.sports_soccer_rounded),
-              label: Text(
-                'Start booking',
-                style: TextStyle(
-                  fontSize: isDesktop ? 18 : 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-
-            // page dots (bottom)
+            // CTA button
+           Align(
+                    alignment: Alignment.center, // just in case it's inside a wide parent
+                    child: ElevatedButton(
+                      onPressed: onStartBooking,
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,                 // gradient fills exactly
+                        backgroundColor: Colors.transparent,      // let gradient show
+                        elevation: 6,
+                        shape: const StadiumBorder(),
+                        minimumSize: const Size(0, 0),            // <-- no min width
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shadowColor: Colors.black54,
+                      ),
+                      child: Ink(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Color.fromARGB(255, 80, 5, 5),
+                              Color.fromARGB(255, 243, 203, 84),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(40)),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isDesktop ? 28 : 22,
+                            vertical: isDesktop ? 16 : 12,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min, // <-- keeps it compact
+                            children: const [
+                              Icon(Icons.sports_soccer_rounded, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text(
+                                'Start booking',
+                                style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  ,
+            // page dots
             Positioned(
               bottom: 10,
               child: Row(
@@ -474,7 +498,6 @@ class _Slide {
 }
 
 /* ---------------- ABOUT ---------------- */
-
 class _AboutRow extends StatelessWidget {
   const _AboutRow({
     required this.imageAsset,
@@ -551,8 +574,7 @@ class _AboutRow extends StatelessWidget {
   }
 }
 
-/* ---------------- FOOTER (maroon) ---------------- */
-
+/* ---------------- FOOTER ---------------- */
 class _Footer extends StatelessWidget {
   const _Footer();
 
@@ -628,7 +650,7 @@ class _Social extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: Colors.white, size: 18), // visible over maroon
+          child: Icon(icon, color: Colors.white, size: 18),
         ),
       ),
     );

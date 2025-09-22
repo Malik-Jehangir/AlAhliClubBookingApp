@@ -15,15 +15,25 @@ class DetailsScreen extends StatefulWidget {
 class _DetailsScreenState extends State<DetailsScreen> {
   static const double _maxWidth = 1200;
 
+  // --- Reusable header/footer gradient (same as HomeScreen)
+  LinearGradient get _headerFooterGradient => const LinearGradient(
+        colors: [
+          Color.fromARGB(255, 80, 5, 5),      // primary
+          Color.fromARGB(255, 243, 203, 84),  // tertiary
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+
   // Selections
-  DateTime? _selectedDay;        // day only (no time)
-  int? _selectedDuration;        // 90 / 120 / 240
-  DateTime? _when;               // final chosen start DateTime
+  DateTime? _selectedDay;
+  int? _selectedDuration;
+  DateTime? _when;
 
   // Configurable hours and slot steps
-  static const int _openHour = 8;     // 08:00
-  static const int _closeHour = 23;   // venue closes at 23:00 (end must be < 23:00)
-  static const int _stepMins = 30;    // slot step
+  static const int _openHour = 8;
+  static const int _closeHour = 23;
+  static const int _stepMins = 30;
 
   // Helpers
   String _fmtDate(DateTime d) =>
@@ -49,10 +59,9 @@ class _DetailsScreenState extends State<DetailsScreen> {
       lastDate: now.add(const Duration(days: 365)),
     );
     if (picked != null) {
-      // store day only (zero out time)
       setState(() {
         _selectedDay = DateTime(picked.year, picked.month, picked.day);
-        _when = null; // reset final selection if date changes
+        _when = null;
       });
     }
   }
@@ -82,7 +91,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Header
                     Row(
                       children: [
                         const Icon(Icons.schedule, size: 20),
@@ -108,7 +116,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-
                     if (slots.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
@@ -156,12 +163,9 @@ class _DetailsScreenState extends State<DetailsScreen> {
       },
     );
 
-    if (chosen != null) {
-      setState(() => _when = chosen);
-    }
+    if (chosen != null) setState(() => _when = chosen);
   }
 
-  // Generate slot starts so that (start + duration) < closeHour
   List<DateTime> _generateSlots({
     required DateTime day,
     required int durationMinutes,
@@ -173,7 +177,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
     final close = DateTime(day.year, day.month, day.day, closeHour);
     var cursor = open;
 
-    // If today, don't offer times in the past; round up to step
     final now = DateTime.now();
     if (day.year == now.year && day.month == now.month && day.day == now.day) {
       final minsNow = now.hour * 60 + now.minute;
@@ -187,7 +190,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
     final list = <DateTime>[];
     while (true) {
       final end = cursor.add(Duration(minutes: durationMinutes));
-      // end must be strictly before venue close
       if (!end.isBefore(close)) break;
       list.add(cursor);
       cursor = cursor.add(Duration(minutes: stepMins));
@@ -200,7 +202,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
     final venue = widget.venue;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    // --- Left: hero image
     final heroImage = Material(
       elevation: 2,
       borderRadius: BorderRadius.circular(20),
@@ -213,7 +214,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
       ),
     );
 
-    // --- Right: details
     final detailsCard = Material(
       elevation: 2,
       color: Colors.white,
@@ -223,7 +223,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // title + price
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -246,10 +245,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    const Text(
-                      " ",
-                      style: TextStyle(height: 0, fontSize: 0), // small spacer
-                    ),
+                    const Text(" ", style: TextStyle(height: 0, fontSize: 0)),
                     Text(
                       "${venue.originPrice} BHD",
                       style: const TextStyle(
@@ -266,7 +262,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
             const SizedBox(height: 16),
 
-            // macros
             ResponsiveMacros(
               items: const [
                 MacroItem('Players', 8, FontAwesomeIcons.person),
@@ -278,7 +273,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
             const SizedBox(height: 20),
 
-            // 1) Pick date
             ListTile(
               onTap: _pickDate,
               leading: const Icon(Icons.event),
@@ -288,7 +282,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // 2) Pick duration
             Align(
               alignment: Alignment.centerLeft,
               child: Wrap(
@@ -301,7 +294,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     selected: selected,
                     onSelected: (_) => setState(() {
                       _selectedDuration = d;
-                      _when = null; // reset chosen slot if duration changes
+                      _when = null;
                     }),
                     selectedColor: Theme.of(context).colorScheme.primary.withOpacity(.15),
                     labelStyle: TextStyle(
@@ -317,7 +310,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
             const SizedBox(height: 12),
 
-            // 3) Button appears only when both date & duration picked
             if (_selectedDay != null && _selectedDuration != null)
               SizedBox(
                 width: double.infinity,
@@ -334,7 +326,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
             const SizedBox(height: 12),
 
-            // 4) Summary of chosen slot (if any)
             if (_when != null)
               Container(
                 width: double.infinity,
@@ -360,7 +351,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
             const SizedBox(height: 12),
 
-            // Book button
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -377,7 +367,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     MaterialPageRoute(
                       builder: (_) => CheckoutScreen(
                         venue: venue,
-                        dateTime: _when!, // start time
+                        dateTime: _when!,
                       ),
                     ),
                   );
@@ -401,7 +391,20 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.background),
+      appBar: AppBar(
+        // Apply gradient to header
+        flexibleSpace: Container(
+          decoration: BoxDecoration(gradient: _headerFooterGradient),
+        ),
+        title: const Text(
+          'Details',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        // Icons/text will be light-on-dark by default with this gradient
+        foregroundColor: Colors.white,
+        // Optionally remove elevation if you like the flat look
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -428,6 +431,17 @@ class _DetailsScreenState extends State<DetailsScreen> {
                       ],
                     ),
             ),
+          ),
+        ),
+      ),
+      // Apply same gradient to footer
+      bottomNavigationBar: Container(
+        height: 60,
+        decoration: BoxDecoration(gradient: _headerFooterGradient),
+        child: const Center(
+          child: Text(
+            '© 2025 BookNow',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
           ),
         ),
       ),

@@ -20,6 +20,16 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   PaymentMethod _method = PaymentMethod.onSite;
 
+  // --- Reusable header/footer gradient (match other screens)
+  LinearGradient get _headerFooterGradient => const LinearGradient(
+        colors: [
+          Color.fromARGB(255, 80, 5, 5),      // primary
+          Color.fromARGB(255, 243, 203, 84),  // tertiary
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+
   String _fmtDate(DateTime d) =>
       "${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
   String _fmtTime(DateTime d) =>
@@ -163,7 +173,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
+      appBar: AppBar(
+        title: const Text('Checkout'),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(gradient: _headerFooterGradient),
+        ),
+      ),
       backgroundColor: Theme.of(context).colorScheme.background,
       body: LayoutBuilder(
         builder: (context, c) {
@@ -215,6 +232,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           );
         },
+      ),
+      // Footer with same gradient
+      bottomNavigationBar: Container(
+        height: 60,
+        decoration: BoxDecoration(gradient: _headerFooterGradient),
+        child: const Center(
+          child: Text(
+            '© 2025 BookNow',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+          ),
+        ),
       ),
     );
   }

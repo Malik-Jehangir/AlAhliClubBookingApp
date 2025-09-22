@@ -10,6 +10,16 @@ class HomeScreen extends StatelessWidget {
 
   static const double _contentMaxWidth = 1200; // <= cap desktop width
 
+  // define your gradient once so it's reusable
+  LinearGradient get _headerFooterGradient => const LinearGradient(
+        colors: [
+          Color.fromARGB(255, 80, 5, 5),
+          Color.fromARGB(255, 243, 203, 84),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+
   @override
   Widget build(BuildContext context) {
     final List<Venue> venues = [
@@ -30,12 +40,14 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(gradient: _headerFooterGradient),
+        ),
         title: Row(
           children: [
             Image.asset('assets/0.png', scale: 13),
             const SizedBox(width: 8),
-            const Text('Venues', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            const Text('Venues', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30)),
           ],
         ),
         actions: [
@@ -46,10 +58,20 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Center( // <= centers content on desktop
+      body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: _contentMaxWidth),
           child: VenueGrid(venues: venues),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        height: 60,
+        decoration: BoxDecoration(gradient: _headerFooterGradient),
+        child: const Center(
+          child: Text(
+            '© 2025 BookNow',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+          ),
         ),
       ),
     );
