@@ -21,169 +21,157 @@ class _SignInScreenState extends State<SignInScreen> {
   bool obscurePassword = true;
   String? _errorMsg;
 
-  // Reusable gradient
-  LinearGradient get _backgroundGradient => const LinearGradient(
-        colors: [
-          Color.fromARGB(255, 80, 5, 5), // dark red
-          Color.fromARGB(255, 243, 203, 84), // gold
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: _backgroundGradient),
-        child: BlocListener<SignInBloc, SignInState>(
-          listener: (context, state) {
-            if (state is SignInSuccess) {
-              setState(() {
-                signInRequired = false;
-              });
-            } else if (state is SignInProcess) {
-              setState(() {
-                signInRequired = true;
-              });
-            } else if (state is SignInFailure) {
-              setState(() {
-                signInRequired = false;
-                _errorMsg = 'Invalid email or password';
-              });
-            }
-          },
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 40),
-                  Center(
-                    child: Image.asset(
-                      'assets/0.png',
-                      height: 90,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    child: MyTextField(
-                      controller: emailController,
-                      hintText: 'Email',
-                      obscureText: false,
-                      keyboardType: TextInputType.emailAddress,
-                      prefixIcon: const Icon(CupertinoIcons.mail_solid),
-                      errorMsg: _errorMsg,
-                      validator: (val) {
-                        if (val!.isEmpty) {
-                          return 'Please fill in this field';
-                        } else if (!RegExp(r'^[\w-\.]+@([\w-]+.)+[\w-]{2,4}$')
-                            .hasMatch(val)) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    child: MyTextField(
-                      controller: passwordController,
-                      hintText: 'Password',
-                      obscureText: obscurePassword,
-                      keyboardType: TextInputType.visiblePassword,
-                      prefixIcon: const Icon(CupertinoIcons.lock_fill),
-                      errorMsg: _errorMsg,
-                      validator: (val) {
-                        if (val!.isEmpty) {
-                          return 'Please fill in this field';
-                        } else if (!RegExp(
-                                r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~`)\%\-(_+=;:,.<>/?"[{\]}\|^]).{8,}$')
-                            .hasMatch(val)) {
-                          return 'Please enter a valid password';
-                        }
-                        return null;
-                      },
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            obscurePassword = !obscurePassword;
-                            iconPassword = obscurePassword
-                                ? CupertinoIcons.eye_fill
-                                : CupertinoIcons.eye_slash_fill;
-                          });
-                        },
-                        icon: Icon(iconPassword),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  !signInRequired
-                      ? Column(
-                          children: [
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.5,
-                              child: TextButton(
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    context.read<SignInBloc>().add(SignInRequired(
-                                        emailController.text,
-                                        passwordController.text));
-                                  }
-                                },
-                                style: TextButton.styleFrom(
-                                  elevation: 3.0,
-                                  backgroundColor: Colors.black,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(60),
-                                  ),
-                                ),
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 25, vertical: 5),
-                                  child: Text(
-                                    'Sign In',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-
-                            // 👇 "Continue as guest" hyperlink
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => const HomeScreen()),
-                                );
-                              },
-                              child: const Text(
-                                "Continue as guest",
-                                style: TextStyle(
-                                  color: Colors.blue,
-                                  decoration: TextDecoration.underline,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : const CircularProgressIndicator(),
-                ],
+    return BlocListener<SignInBloc, SignInState>(
+      listener: (context, state) {
+        if (state is SignInSuccess) {
+          setState(() {
+            signInRequired = false;
+          });
+        } else if (state is SignInProcess) {
+          setState(() {
+            signInRequired = true;
+          });
+        } else if (state is SignInFailure) {
+          setState(() {
+            signInRequired = false;
+            _errorMsg = 'Invalid email or password';
+          });
+        }
+      },
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              Center(
+                child: Image.asset(
+                  'assets/0.png',
+                  height: 90,
+                  fit: BoxFit.contain,
+                ),
               ),
-            ),
+              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: MyTextField(
+                  controller: emailController,
+                  hintText: 'Email',
+                  obscureText: false,
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: const Icon(CupertinoIcons.mail_solid),
+                  errorMsg: _errorMsg,
+                  validator: (val) {
+                    if (val!.isEmpty) {
+                      return 'Please fill in this field';
+                    } else if (!RegExp(r'^[\w-\.]+@([\w-]+.)+[\w-]{2,4}$')
+                        .hasMatch(val)) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: MyTextField(
+                  controller: passwordController,
+                  hintText: 'Password',
+                  obscureText: obscurePassword,
+                  keyboardType: TextInputType.visiblePassword,
+                  prefixIcon: const Icon(CupertinoIcons.lock_fill),
+                  errorMsg: _errorMsg,
+                  validator: (val) {
+                    if (val!.isEmpty) {
+                      return 'Please fill in this field';
+                    } else if (!RegExp(
+                            r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~`)\%\-(_+=;:,.<>/?"[{\]}\|^]).{8,}$')
+                        .hasMatch(val)) {
+                      return 'Please enter a valid password';
+                    }
+                    return null;
+                  },
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        obscurePassword = !obscurePassword;
+                        if (obscurePassword) {
+                          iconPassword = CupertinoIcons.eye_fill;
+                        } else {
+                          iconPassword = CupertinoIcons.eye_slash_fill;
+                        }
+                      });
+                    },
+                    icon: Icon(iconPassword),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              !signInRequired
+                  ? Column(
+                      children: [
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          child: TextButton(
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                context.read<SignInBloc>().add(SignInRequired(
+                                    emailController.text,
+                                    passwordController.text));
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              elevation: 3.0,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(60),
+                              ),
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 25, vertical: 5),
+                              child: Text(
+                                'Sign In',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // 👇 New "Continue as guest" hyperlink
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const HomeScreen()),
+                            );
+                          },
+                          child: const Text(
+                            "Continue as guest",
+                            style: TextStyle(
+                              color: Colors.blue, // hyperlink color
+                              decoration: TextDecoration.underline,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : const CircularProgressIndicator(),
+            ],
           ),
         ),
       ),
