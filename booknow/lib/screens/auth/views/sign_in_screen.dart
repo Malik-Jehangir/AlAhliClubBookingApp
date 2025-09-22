@@ -1,5 +1,6 @@
 import 'package:booknow/components/my_text_field.dart';
 import 'package:booknow/screens/auth/blocs/sign_in_bloc/sign_in_bloc.dart';
+import 'package:booknow/screens/home/views/admin_dashboard_screen.dart';
 import 'package:booknow/screens/home/views/home_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +56,8 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
               const SizedBox(height: 24),
               const SizedBox(height: 20),
+
+              // Email
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: MyTextField(
@@ -67,7 +70,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   validator: (val) {
                     if (val!.isEmpty) {
                       return 'Please fill in this field';
-                    } else if (!RegExp(r'^[\w-\.]+@([\w-]+.)+[\w-]{2,4}$')
+                    } else if (!RegExp(r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$')
                         .hasMatch(val)) {
                       return 'Please enter a valid email';
                     }
@@ -76,6 +79,8 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
               const SizedBox(height: 10),
+
+              // Password
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: MyTextField(
@@ -89,8 +94,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     if (val!.isEmpty) {
                       return 'Please fill in this field';
                     } else if (!RegExp(
-                            r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~`)\%\-(_+=;:,.<>/?"[{\]}\|^]).{8,}$')
-                        .hasMatch(val)) {
+                      r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~`\)\%\-\(_\+=;:,.<>\/\?"\[\{\]\}\|^]).{8,}$',
+                    ).hasMatch(val)) {
                       return 'Please enter a valid password';
                     }
                     return null;
@@ -99,11 +104,9 @@ class _SignInScreenState extends State<SignInScreen> {
                     onPressed: () {
                       setState(() {
                         obscurePassword = !obscurePassword;
-                        if (obscurePassword) {
-                          iconPassword = CupertinoIcons.eye_fill;
-                        } else {
-                          iconPassword = CupertinoIcons.eye_slash_fill;
-                        }
+                        iconPassword = obscurePassword
+                            ? CupertinoIcons.eye_fill
+                            : CupertinoIcons.eye_slash_fill;
                       });
                     },
                     icon: Icon(iconPassword),
@@ -111,17 +114,23 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Actions
               !signInRequired
                   ? Column(
                       children: [
+                        // Sign In button
                         SizedBox(
                           width: MediaQuery.of(context).size.width * 0.5,
                           child: TextButton(
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
-                                context.read<SignInBloc>().add(SignInRequired(
-                                    emailController.text,
-                                    passwordController.text));
+                                context.read<SignInBloc>().add(
+                                      SignInRequired(
+                                        emailController.text,
+                                        passwordController.text,
+                                      ),
+                                    );
                               }
                             },
                             style: TextButton.styleFrom(
@@ -140,31 +149,60 @@ class _SignInScreenState extends State<SignInScreen> {
                                 'Sign In',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600),
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 10),
 
-                        // 👇 New "Continue as guest" hyperlink
+                        // Continue as guest
                         GestureDetector(
                           onTap: () {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (_) => const HomeScreen()),
+                                builder: (_) => const HomeScreen(),
+                              ),
                             );
                           },
                           child: const Text(
                             "Continue as guest",
                             style: TextStyle(
-                              color: Colors.blue, // hyperlink color
+                              color: Colors.blue,
                               decoration: TextDecoration.underline,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // 👇 NEW: Go to Admin Dashboard
+                        TextButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AdminDashboardScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.admin_panel_settings),
+                          label: const Text("Go to admin dashboard"),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 8,
                             ),
                           ),
                         ),
