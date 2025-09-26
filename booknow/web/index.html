@@ -27,9 +27,14 @@
       inset: 0;
       display: grid;
       place-items: center;
-      background: rgba(0, 0, 0, 0.5); /* semi-transparent black tint */
-      backdrop-filter: blur(12px);    /* blur background */
-      -webkit-backdrop-filter: blur(12px); /* Safari support */
+
+      /* Maroon → Gold gradient background */
+      background: linear-gradient(
+        to bottom right,
+        rgb(80, 5, 5),        /* maroon */
+        rgb(243, 203, 84)     /* gold */
+      );
+
       z-index: 9999;
     }
 

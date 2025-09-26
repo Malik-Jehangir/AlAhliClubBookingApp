@@ -5,9 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../blocs/authentication_bloc/authentication_bloc.dart';
-import 'auth_page.dart'; // separate page that shows sign in / sign up
+import 'auth_page.dart';
 import 'package:booknow/screens/home/views/home_screen.dart';
 import 'package:booknow/screens/auth/blocs/sign_in_bloc/sign_in_bloc.dart';
+
+// optional pages (navbar About/Contact still navigate)
+import 'package:booknow/screens/static/about_us_screen.dart';
+import 'package:booknow/screens/static/contact_us_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -18,36 +22,37 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   static const double _maxWidth = 1200;
   static const kMaroon = Color(0xFF7B1E1E);
-  static const kMaroonDark = Color(0xFF5D1616);
 
-  // Reusable gradient for header & footer
   LinearGradient get _headerFooterGradient => const LinearGradient(
-        colors: [
-          Color.fromARGB(255, 80, 5, 5), // primary
-          Color.fromARGB(255, 243, 203, 84), // tertiary
-        ],
+        colors: [Color(0xFF500505), Color(0xFFF3CB54)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       );
 
+  // anchors for smooth scroll
+  final _homeKey = GlobalKey();
+  final _bookKey = GlobalKey(); // points to footer "Ready to book?"
+
+  // hero slideshow
   final _pageCtrl = PageController();
   final _slides = const [
     _Slide('assets/1.png', 'Book Top Venues', 'Fast, simple, reliable.'),
     _Slide('assets/2.png', 'Play With Friends', 'Football, padel, hoops & more.'),
     _Slide('assets/3.png', 'Great Deals Daily', 'Exclusive rates across Bahrain.'),
   ];
-
   int _page = 0;
   Timer? _auto;
+
+  // event = 11 days from now
+  late final DateTime _eventAt = DateTime.now().add(const Duration(days: 11));
 
   @override
   void initState() {
     super.initState();
     _auto = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted) return;
-      final next = (_page + 1) % _slides.length;
       _pageCtrl.animateToPage(
-        next,
+        (_page + 1) % _slides.length,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeOut,
       );
@@ -61,19 +66,28 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     super.dispose();
   }
 
+  Future<void> _scrollTo(GlobalKey key) async {
+    final ctx = key.currentContext;
+    if (ctx == null) return;
+    await Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+      alignment: .05,
+    );
+  }
+
   Future<void> _guestLogin() async {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Guest mode enabled')),
     );
   }
 
-  void _onStartBooking() {
+  void _startBookingFlow() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (ctx) => BlocProvider<SignInBloc>(
-          create: (ctx) => SignInBloc(
-            ctx.read<AuthenticationBloc>().userRepository,
-          ),
+          create: (ctx) => SignInBloc(ctx.read<AuthenticationBloc>().userRepository),
           child: const HomeScreen(),
         ),
       ),
@@ -88,7 +102,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       backgroundColor: theme.colorScheme.background,
       body: Stack(
         children: [
-          // background blobs
+          // soft background blobs
           Align(
             alignment: const AlignmentDirectional(20, -1.2),
             child: Container(
@@ -115,9 +129,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
           CustomScrollView(
             slivers: [
-              // ===== HEADER (gradient) =====
-              SliverToBoxAdapter(
-                child: Container(
+              // ===== BIG STICKY HEADER =====
+              SliverAppBar(
+                pinned: true,
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                flexibleSpace: Container(
                   decoration: BoxDecoration(gradient: _headerFooterGradient),
                   child: SafeArea(
                     bottom: false,
@@ -125,10 +142,24 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: _maxWidth),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          child: _Header(
-                            maroon: kMaroon,
-                            maroonDark: kMaroonDark,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          child: _NavBar(
+                            onLogoTap: () => _scrollTo(_homeKey),
+                            onHome: () => _scrollTo(_homeKey),
+                            onAbout: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AboutUsScreen()),
+                            ),
+                            // Book scrolls to footer “Ready to book?”
+                            onBook: () => Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (_) => const HomeScreen()),
+                              (r) => false, // clears the stack so the header "Book" consistently lands on Home
+                            ),
+                            onContact: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const ContactUsScreen()),
+                            ),
+                            // tab links (not buttons)
                             onSignIn: () => Navigator.of(context).push(AuthPage.route(AuthMode.signIn)),
                             onSignUp: () => Navigator.of(context).push(AuthPage.route(AuthMode.signUp)),
                             onGuest: _guestLogin,
@@ -140,25 +171,24 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
               ),
 
-              // ===== HERO SLIDESHOW + CTA =====
+              // ===== HOME / HERO =====
               SliverToBoxAdapter(
+                key: _homeKey,
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: _maxWidth),
-                    child: _Hero(
+                    child: _HeroWithCountdown(
                       pageCtrl: _pageCtrl,
                       slides: _slides,
                       page: _page,
                       onChanged: (i) => setState(() => _page = i),
-                      onStartBooking: _onStartBooking,
-                      maroon: kMaroon,
-                      maroonDark: kMaroonDark,
+                      eventAt: _eventAt,
                     ),
                   ),
                 ),
               ),
 
-              // ===== ABOUT =====
+              // ===== ABOUT (pictures + text) =====
               SliverToBoxAdapter(
                 child: Center(
                   child: ConstrainedBox(
@@ -189,17 +219,33 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
               ),
 
-              // ===== FOOTER (gradient) =====
+              // ===== FOOTER (with sub-links + Ready to book?) =====
               SliverToBoxAdapter(
                 child: Container(
                   decoration: BoxDecoration(gradient: _headerFooterGradient),
-                  padding: const EdgeInsets.symmetric(vertical: 28),
+                  padding: const EdgeInsets.only(top: 28, bottom: 12),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: _maxWidth),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: _Footer(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          children: [
+                            _FooterColumns(
+                              onLogoTap: () => _scrollTo(_homeKey),
+                            ),
+                            const SizedBox(height: 20),
+                            // Book anchor lives here (footer)
+                            KeyedSubtree(
+                              key: _bookKey,
+                              child: _FooterBookNow(onFind: _startBookingFlow),
+                            ),
+                            const SizedBox(height: 18),
+                            const Divider(color: Colors.white24, height: 1),
+                            const SizedBox(height: 10),
+                            const _FooterBottomBar(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -213,144 +259,135 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
-/* ---------------- HEADER ---------------- */
-class _Header extends StatelessWidget {
-  const _Header({
-    required this.maroon,
-    required this.maroonDark,
+/* ===================== NAVBAR ===================== */
+class _NavBar extends StatelessWidget {
+  const _NavBar({
+    required this.onLogoTap,
+    required this.onHome,
+    required this.onAbout,
+    required this.onBook,
+    required this.onContact,
     required this.onSignIn,
     required this.onSignUp,
     required this.onGuest,
   });
 
-  final Color maroon;
-  final Color maroonDark;
+  final VoidCallback onLogoTap;
+  final VoidCallback onHome;
+  final VoidCallback onAbout;
+  final VoidCallback onBook;
+  final VoidCallback onContact;
   final VoidCallback onSignIn;
   final VoidCallback onSignUp;
   final VoidCallback onGuest;
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final isDesktop = w >= 1000;
-
     return Row(
       children: [
-        // Logo + brand
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset('assets/0.png', height: 36),
-            const SizedBox(width: 10),
-            if (isDesktop)
-              Text(
+        InkWell(
+          onTap: onLogoTap,
+          child: Row(
+            children: [
+              // bigger header logo
+              Image.asset('assets/0.png', height: 56),
+              const SizedBox(width: 10),
+              const Text(
                 'BookNow',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: .5,
+                  fontSize: 22,
+                ),
               ),
-          ],
+            ],
+          ),
         ),
         const Spacer(),
-        _IconAction(
-          icon: Icons.login_rounded,
-          label: 'Sign in',
-          onTap: onSignIn,
-          bg: Colors.white,
-          fg: maroon,
-          border: Colors.transparent,
-        ),
-        const SizedBox(width: 8),
-        _IconAction(
-          icon: Icons.person_add_alt_1_rounded,
-          label: 'Sign up',
-          onTap: onSignUp,
-          bg: Colors.transparent,
-          fg: Colors.white,
-          border: Colors.white70,
-        ),
-        const SizedBox(width: 8),
-        _IconAction(
-          icon: Icons.person_outline_rounded,
-          label: 'Guest',
-          onTap: onGuest,
-          bg: Colors.white,
-          fg: maroon,
-          border: Colors.transparent,
-        ),
+        // all tabs are links (including auth/guest)
+        _NavTab('Home', onHome),
+        _NavTab('About Us', onAbout),
+        _NavTab('Book', onBook),
+        _NavTab('Contact Us', onContact),
+        const SizedBox(width: 12),
+        _NavTab('Sign In', onSignIn),
+        _NavTab('Sign Up', onSignUp),
+        _NavTab('Guest', onGuest),
       ],
     );
   }
 }
 
-class _IconAction extends StatelessWidget {
-  const _IconAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    required this.bg,
-    required this.fg,
-    required this.border,
-  });
-
-  final IconData icon;
+class _NavTab extends StatelessWidget {
+  const _NavTab(this.label, this.onTap);
   final String label;
   final VoidCallback onTap;
-  final Color bg;
-  final Color fg;
-  final Color border;
-
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: bg,
-      shape: StadiumBorder(
-        side: BorderSide(color: border, width: border == Colors.transparent ? 0 : 1.2),
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       ),
-      child: InkWell(
-        customBorder: const StadiumBorder(),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 18, color: fg),
-              const SizedBox(width: 8),
-              Text(label, style: TextStyle(color: fg, fontWeight: FontWeight.w700)),
-            ],
-          ),
-        ),
-      ),
+      child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
     );
   }
 }
 
-/* ---------------- HERO ---------------- */
-class _Hero extends StatelessWidget {
-  const _Hero({
+/* ===================== HERO WITH COUNTDOWN ===================== */
+class _HeroWithCountdown extends StatefulWidget {
+  const _HeroWithCountdown({
     required this.pageCtrl,
     required this.slides,
     required this.page,
     required this.onChanged,
-    required this.onStartBooking,
-    required this.maroon,
-    required this.maroonDark,
+    required this.eventAt,
   });
 
   final PageController pageCtrl;
   final List<_Slide> slides;
   final int page;
   final ValueChanged<int> onChanged;
-  final VoidCallback onStartBooking;
-  final Color maroon;
-  final Color maroonDark;
+  final DateTime eventAt;
+
+  @override
+  State<_HeroWithCountdown> createState() => _HeroWithCountdownState();
+}
+
+class _HeroWithCountdownState extends State<_HeroWithCountdown> {
+  late Timer _tick;
+  late Duration _remaining;
+
+  @override
+  void initState() {
+    super.initState();
+    _remaining = widget.eventAt.difference(DateTime.now());
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() {
+        _remaining = widget.eventAt.difference(DateTime.now());
+        if (_remaining.isNegative) _remaining = Duration.zero;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick.cancel();
+    super.dispose();
+  }
+
+  String _two(int v) => v.toString().padLeft(2, '0');
+  String _three(int v) => v.toString().padLeft(3, '0');
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final isDesktop = w >= 1000;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final days = _three(_remaining.inDays.clamp(0, 999));
+    final hours = _two(_remaining.inHours.remainder(24).clamp(0, 99));
+    final mins = _two(_remaining.inMinutes.remainder(60).clamp(0, 99));
+    final secs = _two(_remaining.inSeconds.remainder(60).clamp(0, 99));
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -362,11 +399,11 @@ class _Hero extends StatelessWidget {
             AspectRatio(
               aspectRatio: isDesktop ? 16 / 5 : 16 / 9,
               child: PageView.builder(
-                controller: pageCtrl,
-                onPageChanged: onChanged,
-                itemCount: slides.length,
+                controller: widget.pageCtrl,
+                onPageChanged: widget.onChanged,
+                itemCount: widget.slides.length,
                 itemBuilder: (_, i) {
-                  final s = slides[i];
+                  final s = widget.slides[i];
                   return Stack(
                     fit: StackFit.expand,
                     children: [
@@ -380,103 +417,49 @@ class _Hero extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Align(
-                        alignment: isDesktop ? Alignment.centerLeft : Alignment.bottomLeft,
-                        child: Padding(
-                          padding: EdgeInsets.all(isDesktop ? 32 : 20),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 520),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  s.headline,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: isDesktop ? 44 : 28,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  s.sub,
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.9),
-                                    fontSize: isDesktop ? 18 : 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   );
                 },
               ),
             ),
 
-            // CTA button
-           Align(
-                    alignment: Alignment.center, // just in case it's inside a wide parent
-                    child: ElevatedButton(
-                      onPressed: onStartBooking,
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,                 // gradient fills exactly
-                        backgroundColor: Colors.transparent,      // let gradient show
-                        elevation: 6,
-                        shape: const StadiumBorder(),
-                        minimumSize: const Size(0, 0),            // <-- no min width
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shadowColor: Colors.black54,
-                      ),
-                      child: Ink(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color.fromARGB(255, 80, 5, 5),
-                              Color.fromARGB(255, 243, 203, 84),
-                            ],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.all(Radius.circular(40)),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isDesktop ? 28 : 22,
-                            vertical: isDesktop ? 16 : 12,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min, // <-- keeps it compact
-                            children: const [
-                              Icon(Icons.sports_soccer_rounded, color: Colors.white),
-                              SizedBox(width: 8),
-                              Text(
-                                'Start booking',
-                                style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                  ,
+            // === SEGMENT-STYLE COUNTDOWN (000 / 00 / 00 / 00 + labels) ===
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _CountBlock(value: days, label: 'days', wide: true),
+                    const SizedBox(width: 18),
+                    _CountBlock(value: hours, label: 'hrs'),
+                    const SizedBox(width: 18),
+                    _CountBlock(value: mins, label: 'min'),
+                    const SizedBox(width: 18),
+                    _CountBlock(value: secs, label: 'sec'),
+                  ],
+                ),
+              ),
+            ),
+
             // page dots
             Positioned(
               bottom: 10,
               child: Row(
                 children: List.generate(
-                  slides.length,
+                  widget.slides.length,
                   (i) => AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
-                    width: i == page ? 26 : 8,
+                    width: i == widget.page ? 26 : 8,
                     height: 8,
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(i == page ? 0.95 : 0.6),
+                      color: Colors.white.withOpacity(i == widget.page ? 0.95 : 0.6),
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
@@ -490,6 +473,59 @@ class _Hero extends StatelessWidget {
   }
 }
 
+// one segment in the countdown
+class _CountBlock extends StatelessWidget {
+  const _CountBlock({required this.value, required this.label, this.wide = false});
+  final String value;
+  final String label;
+  final bool wide;
+
+  @override
+  Widget build(BuildContext context) {
+    // number
+    final numStyle = TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.w900,
+      fontSize: 42,
+      height: 1.0,
+      letterSpacing: 1.0,
+      shadows: const [
+        Shadow(blurRadius: 6, color: Colors.black54, offset: Offset(0, 2)),
+      ],
+    );
+    // label
+    final lblStyle = TextStyle(
+      color: Colors.white.withOpacity(0.9),
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      letterSpacing: .4,
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: wide ? 100 : 72,
+          child: Text(
+            value,
+            textAlign: TextAlign.center,
+            style: numStyle,
+          ),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: wide ? 100 : 72,
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: lblStyle,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _Slide {
   final String asset;
   final String headline;
@@ -497,7 +533,7 @@ class _Slide {
   const _Slide(this.asset, this.headline, this.sub);
 }
 
-/* ---------------- ABOUT ---------------- */
+/* ===================== ABOUT ===================== */
 class _AboutRow extends StatelessWidget {
   const _AboutRow({
     required this.imageAsset,
@@ -537,18 +573,10 @@ class _AboutRow extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
+            Text(title,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
-            Text(
-              text,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.4),
-            ),
+            Text(text, style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.4)),
           ],
         ),
       ),
@@ -567,92 +595,160 @@ class _AboutRow extends StatelessWidget {
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: imageLeft
-          ? [image, const SizedBox(width: 24), copy]
-          : [copy, const SizedBox(width: 24), image],
+      children: imageLeft ? [image, const SizedBox(width: 24), copy] : [copy, const SizedBox(width: 24), image],
     );
   }
 }
 
-/* ---------------- FOOTER ---------------- */
-class _Footer extends StatelessWidget {
-  const _Footer();
+/* ===================== FOOTER ===================== */
+class _FooterColumns extends StatelessWidget {
+  const _FooterColumns({required this.onLogoTap});
+  final VoidCallback onLogoTap;
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final isDesktop = w >= 900;
+    final isWide = MediaQuery.of(context).size.width >= 900;
 
-    final socials = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _Social(icon: Icons.facebook, onTap: () {}),
-        const SizedBox(width: 10),
-        _Social(icon: Icons.camera_alt, onTap: () {}), // Instagram-like
-        const SizedBox(width: 10),
-        _Social(icon: Icons.alternate_email, onTap: () {}), // X/Twitter-ish
-      ],
-    );
-
-    final contact = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text('Contact Us',
-            style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
-        SizedBox(height: 6),
-        Text('Al Ahli Club, Zinj, Manama, Kingdom of Bahrain',
-            style: TextStyle(color: Colors.white)),
-      ],
-    );
-
-    final copy = Text(
-      '© ${DateTime.now().year} BookNow • All rights reserved',
-      style: const TextStyle(color: Colors.white70),
-    );
-
-    if (!isDesktop) {
-      return Column(
+    final left = InkWell(
+      onTap: onLogoTap,
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          socials,
+          // much bigger footer logo
+          Image.asset('assets/0.png', height: 104),
+        ],
+      ),
+    );
+
+    final about = _FooterSection(
+      title: 'About Al Ahli',
+      links: const ['About Us', 'Terms and Condition', 'Contact Us'],
+    );
+
+    final players = _FooterSection(
+      title: 'For Players',
+      links: const ['Stadiums List', 'Privacy Policy', 'Refund Policy'],
+    );
+
+    final owners = _FooterSection(
+      title: 'For Venue Owners',
+      links: const ['Join as an owner', 'FAQS'],
+    );
+
+    if (!isWide) {
+      return Column(
+        children: [
+          left,
+          const SizedBox(height: 24),
+          about,
           const SizedBox(height: 16),
-          contact,
+          players,
           const SizedBox(height: 16),
-          copy,
+          owners,
         ],
       );
     }
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        socials,
-        const Spacer(),
-        contact,
-        const Spacer(),
-        copy,
+        Expanded(flex: 4, child: Center(child: left)),
+        const SizedBox(width: 24),
+        Expanded(flex: 3, child: about),
+        Expanded(flex: 3, child: players),
+        Expanded(flex: 3, child: owners),
       ],
     );
   }
 }
 
-class _Social extends StatelessWidget {
-  const _Social({required this.icon, this.onTap});
-  final IconData icon;
+class _FooterSection extends StatelessWidget {
+  const _FooterSection({required this.title, required this.links});
+  final String title;
+  final List<String> links;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+        const SizedBox(height: 12),
+        for (final text in links)
+          _FooterLink(
+            text,
+            onTap: () {}, // clickable no-op
+          ),
+      ],
+    );
+  }
+}
+
+class _FooterLink extends StatelessWidget {
+  const _FooterLink(this.label, {this.onTap});
+  final String label;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      shape: const CircleBorder(side: BorderSide(color: Colors.white70)),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: Colors.white, size: 18),
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Text(label, style: const TextStyle(color: Colors.white)),
+      ),
+    );
+  }
+}
+
+// Footer "Ready to book?" (the only one on the page)
+class _FooterBookNow extends StatelessWidget {
+  const _FooterBookNow({required this.onFind});
+  final VoidCallback onFind;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.white,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Expanded(
+              child: Text(
+                'Ready to book?',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: onFind,
+              icon: const Icon(Icons.calendar_month_rounded),
+              label: const Text('Find a slot'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _FooterBottomBar extends StatelessWidget {
+  const _FooterBottomBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'Version 1.0.0  © ${DateTime.now().year} Al Ahli. All rights reserved.',
+      style: const TextStyle(color: Colors.white70),
+      textAlign: TextAlign.center,
     );
   }
 }
