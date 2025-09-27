@@ -28,6 +28,12 @@ class AboutUsScreen extends StatelessWidget {
       );
     }
 
+    // === NEW: Taller toolbar + computed logo height (consistent with other screens)
+    final isDesktopBar = MediaQuery.of(context).size.width >= 900;
+    final barHeight = isDesktopBar ? 84.0 : 64.0;
+    const vPad = 12.0;
+    final logoH = barHeight - (vPad * 2);
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Stack(
@@ -65,6 +71,7 @@ class AboutUsScreen extends StatelessWidget {
                 pinned: true,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
+                toolbarHeight: barHeight, // NEW
                 flexibleSpace: Container(
                   decoration: BoxDecoration(gradient: _headerFooterGradient),
                   child: SafeArea(
@@ -74,8 +81,9 @@ class AboutUsScreen extends StatelessWidget {
                         constraints: const BoxConstraints(maxWidth: _maxWidth),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
+                            horizontal: 20, vertical: vPad), // use same vPad
                           child: _NavBar(
+                            logoHeight: logoH, // NEW
                             onLogoTap: () {
                               Navigator.pushAndRemoveUntil(
                                 context,
@@ -268,6 +276,7 @@ class _NavBar extends StatelessWidget {
     required this.onSignUp,
     required this.onGuest,
     this.activeTab = _ActiveTab.home,
+    required this.logoHeight, // NEW
   });
 
   final VoidCallback onLogoTap;
@@ -279,6 +288,7 @@ class _NavBar extends StatelessWidget {
   final VoidCallback onSignUp;
   final VoidCallback onGuest;
   final _ActiveTab activeTab;
+  final double logoHeight; // NEW
 
   // 🔧 No underline; make active a bit bolder (or change color if you want)
   TextStyle _linkStyle(bool active) => TextStyle(
@@ -294,10 +304,10 @@ class _NavBar extends StatelessWidget {
         InkWell(
           onTap: onLogoTap,
           child: Row(
-            children: const [
-              _HeaderLogo(),
-              SizedBox(width: 10),
-              Text(
+            children: [
+              _HeaderLogo(height: logoHeight), // NEW: fill the taller toolbar
+              const SizedBox(width: 10),
+              const Text(
                 'BookNow',
                 style: TextStyle(
                   color: Colors.white,
@@ -323,14 +333,17 @@ class _NavBar extends StatelessWidget {
   }
 }
 
-
 class _HeaderLogo extends StatelessWidget {
-  const _HeaderLogo();
+  const _HeaderLogo({this.height});
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
+    // If height is provided (from the taller toolbar), use it.
+    // Otherwise keep the original responsive fallback you had.
     final isDesktop = MediaQuery.of(context).size.width >= 900;
-    return Image.asset('assets/0.png', height: isDesktop ? 56 : 48);
+    final h = height ?? (isDesktop ? 56.0 : 48.0);
+    return Image.asset('assets/0.png', height: h);
   }
 }
 

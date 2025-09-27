@@ -97,6 +97,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final barHeight = isDesktop ? 84.0 : 64.0; // taller toolbar
+    const vPad = 12.0;
+    final logoH = barHeight - (vPad * 2);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -134,6 +138,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 pinned: true,
                 elevation: 0,
                 backgroundColor: Colors.transparent,
+                toolbarHeight: barHeight, // important
                 flexibleSpace: Container(
                   decoration: BoxDecoration(gradient: _headerFooterGradient),
                   child: SafeArea(
@@ -142,24 +147,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: _maxWidth),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: vPad),
                           child: _NavBar(
+                            logoHeight: logoH, // pass computed logo height
                             onLogoTap: () => _scrollTo(_homeKey),
                             onHome: () => _scrollTo(_homeKey),
                             onAbout: () => Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => const AboutUsScreen()),
                             ),
-                            // Book scrolls to footer “Ready to book?”
+                            // Book goes to HomeScreen
                             onBook: () => Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(builder: (_) => const HomeScreen()),
-                              (r) => false, // clears the stack so the header "Book" consistently lands on Home
+                              (r) => false,
                             ),
                             onContact: () => Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => const ContactUsScreen()),
                             ),
-                            // tab links (not buttons)
+                            // auth tabs
                             onSignIn: () => Navigator.of(context).push(AuthPage.route(AuthMode.signIn)),
                             onSignUp: () => Navigator.of(context).push(AuthPage.route(AuthMode.signUp)),
                             onGuest: _guestLogin,
@@ -270,6 +276,7 @@ class _NavBar extends StatelessWidget {
     required this.onSignIn,
     required this.onSignUp,
     required this.onGuest,
+    required this.logoHeight, // NEW
   });
 
   final VoidCallback onLogoTap;
@@ -280,6 +287,7 @@ class _NavBar extends StatelessWidget {
   final VoidCallback onSignIn;
   final VoidCallback onSignUp;
   final VoidCallback onGuest;
+  final double logoHeight; // NEW
 
   @override
   Widget build(BuildContext context) {
@@ -289,8 +297,7 @@ class _NavBar extends StatelessWidget {
           onTap: onLogoTap,
           child: Row(
             children: [
-              // bigger header logo
-              Image.asset('assets/0.png', height: 56),
+              Image.asset('assets/0.png', height: logoHeight), // fills toolbar
               const SizedBox(width: 10),
               const Text(
                 'BookNow',
@@ -305,7 +312,6 @@ class _NavBar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        // all tabs are links (including auth/guest)
         _NavTab('Home', onHome),
         _NavTab('About Us', onAbout),
         _NavTab('Book', onBook),
@@ -337,6 +343,7 @@ class _NavTab extends StatelessWidget {
 }
 
 /* ===================== HERO WITH COUNTDOWN ===================== */
+// (unchanged below)
 class _HeroWithCountdown extends StatefulWidget {
   const _HeroWithCountdown({
     required this.pageCtrl,
@@ -423,7 +430,7 @@ class _HeroWithCountdownState extends State<_HeroWithCountdown> {
               ),
             ),
 
-            // === SEGMENT-STYLE COUNTDOWN (000 / 00 / 00 / 00 + labels) ===
+            // countdown
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               decoration: BoxDecoration(
@@ -473,7 +480,6 @@ class _HeroWithCountdownState extends State<_HeroWithCountdown> {
   }
 }
 
-// one segment in the countdown
 class _CountBlock extends StatelessWidget {
   const _CountBlock({required this.value, required this.label, this.wide = false});
   final String value;
@@ -482,7 +488,6 @@ class _CountBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // number
     final numStyle = TextStyle(
       color: Colors.white,
       fontWeight: FontWeight.w900,
@@ -493,7 +498,6 @@ class _CountBlock extends StatelessWidget {
         Shadow(blurRadius: 6, color: Colors.black54, offset: Offset(0, 2)),
       ],
     );
-    // label
     final lblStyle = TextStyle(
       color: Colors.white.withOpacity(0.9),
       fontSize: 14,
@@ -506,20 +510,12 @@ class _CountBlock extends StatelessWidget {
       children: [
         SizedBox(
           width: wide ? 100 : 72,
-          child: Text(
-            value,
-            textAlign: TextAlign.center,
-            style: numStyle,
-          ),
+          child: Text(value, textAlign: TextAlign.center, style: numStyle),
         ),
         const SizedBox(height: 6),
         SizedBox(
           width: wide ? 100 : 72,
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: lblStyle,
-          ),
+          child: Text(label, textAlign: TextAlign.center, style: lblStyle),
         ),
       ],
     );
@@ -534,6 +530,7 @@ class _Slide {
 }
 
 /* ===================== ABOUT ===================== */
+// (unchanged below)
 class _AboutRow extends StatelessWidget {
   const _AboutRow({
     required this.imageAsset,
@@ -601,6 +598,7 @@ class _AboutRow extends StatelessWidget {
 }
 
 /* ===================== FOOTER ===================== */
+// (unchanged below)
 class _FooterColumns extends StatelessWidget {
   const _FooterColumns({required this.onLogoTap});
   final VoidCallback onLogoTap;
@@ -614,7 +612,6 @@ class _FooterColumns extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // much bigger footer logo
           Image.asset('assets/0.png', height: 104),
         ],
       ),
@@ -702,7 +699,6 @@ class _FooterLink extends StatelessWidget {
   }
 }
 
-// Footer "Ready to book?" (the only one on the page)
 class _FooterBookNow extends StatelessWidget {
   const _FooterBookNow({required this.onFind});
   final VoidCallback onFind;

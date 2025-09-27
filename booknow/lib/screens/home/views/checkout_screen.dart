@@ -47,6 +47,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final v = widget.venue;
     final d = widget.dateTime;
 
+    // ===== NEW: Taller toolbar + computed logo height (matches other screens)
+    final isDesktopBar = MediaQuery.of(context).size.width >= 900;
+    final barHeight = isDesktopBar ? 84.0 : 64.0;
+    const vPad = 12.0;
+    final logoH = barHeight - (vPad * 2);
+
     // --------- MAIN CONTENT WIDGETS (unchanged) ---------
     final summaryCard = Material(
       elevation: 2,
@@ -188,6 +194,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             pinned: true,
             elevation: 0,
             backgroundColor: Colors.transparent,
+            toolbarHeight: barHeight, // <-- important to allow a larger logo
             flexibleSpace: Container(
               decoration: BoxDecoration(gradient: _headerFooterGradient),
               child: SafeArea(
@@ -196,8 +203,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1200),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: vPad),
                       child: _NavBar(
+                        logoHeight: logoH, // <-- pass computed height
                         onLogoTap: () => Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(builder: (_) => const WelcomeScreen()),
                           (r) => false,
@@ -325,6 +333,7 @@ class _NavBar extends StatelessWidget {
     required this.onSignIn,
     required this.onSignUp,
     required this.onGuest,
+    required this.logoHeight, // NEW
   });
 
   final VoidCallback onLogoTap;
@@ -335,6 +344,7 @@ class _NavBar extends StatelessWidget {
   final VoidCallback onSignIn;
   final VoidCallback onSignUp;
   final VoidCallback onGuest;
+  final double logoHeight; // NEW
 
   @override
   Widget build(BuildContext context) {
@@ -344,7 +354,7 @@ class _NavBar extends StatelessWidget {
           onTap: onLogoTap,
           child: Row(
             children: [
-              Image.asset('assets/0.png', height: 56),
+              Image.asset('assets/0.png', height: logoHeight), // <-- was 56
               const SizedBox(width: 10),
               const Text(
                 'BookNow',

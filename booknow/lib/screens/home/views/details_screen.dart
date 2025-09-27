@@ -54,7 +54,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
     return "$t on $d";
   }
 
-
   Future<void> _pickDate() async {
     final now = DateTime.now();
     final initial = _selectedDay ?? DateTime(now.year, now.month, now.day);
@@ -388,6 +387,12 @@ class _DetailsScreenState extends State<DetailsScreen> {
       ),
     );
 
+    // ===== NEW: Taller toolbar + computed logo height (same pattern as other screens)
+    final barIsDesktop = MediaQuery.of(context).size.width >= 900;
+    final barHeight = barIsDesktop ? 84.0 : 64.0;
+    const vPad = 12.0;
+    final logoH = barHeight - (vPad * 2);
+
     // PAGE LAYOUT WITH SAME HEADER + FOOTER
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -398,6 +403,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
             pinned: true,
             elevation: 0,
             backgroundColor: Colors.transparent,
+            toolbarHeight: barHeight, // important
             flexibleSpace: Container(
               decoration: BoxDecoration(gradient: _headerFooterGradient),
               child: SafeArea(
@@ -406,8 +412,9 @@ class _DetailsScreenState extends State<DetailsScreen> {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: _maxWidth),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: vPad),
                       child: _NavBar(
+                        logoHeight: logoH, // pass computed height
                         onLogoTap: () => Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(builder: (_) => const WelcomeScreen()),
                           (r) => false,
@@ -417,10 +424,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
                           (r) => false,
                         ),
                         onAbout: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutUsScreen())),
-                         onBook: () => Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(builder: (_) => const HomeScreen()),
-                              (r) => false, // clears the stack so the header "Book" consistently lands on Home
-                            ),
+                        onBook: () => Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const HomeScreen()),
+                          (r) => false, // clears the stack so the header "Book" consistently lands on Home
+                        ),
                         onContact: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactUsScreen())),
                         onSignIn: () => Navigator.of(context).push(AuthPage.route(AuthMode.signIn)),
                         onSignUp: () => Navigator.of(context).push(AuthPage.route(AuthMode.signUp)),
@@ -521,6 +528,7 @@ class _NavBar extends StatelessWidget {
     required this.onSignIn,
     required this.onSignUp,
     required this.onGuest,
+    required this.logoHeight, // NEW
   });
 
   final VoidCallback onLogoTap;
@@ -531,6 +539,7 @@ class _NavBar extends StatelessWidget {
   final VoidCallback onSignIn;
   final VoidCallback onSignUp;
   final VoidCallback onGuest;
+  final double logoHeight; // NEW
 
   @override
   Widget build(BuildContext context) {
@@ -540,7 +549,7 @@ class _NavBar extends StatelessWidget {
           onTap: onLogoTap,
           child: Row(
             children: [
-              Image.asset('assets/0.png', height: 56),
+              Image.asset('assets/0.png', height: logoHeight), // fills the taller toolbar
               const SizedBox(width: 10),
               const Text(
                 'BookNow',

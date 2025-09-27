@@ -41,13 +41,18 @@ class HomeScreen extends StatelessWidget {
     final bookKey = GlobalKey();
     final homeKey = GlobalKey();
 
-
     void toWelcome() {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const WelcomeScreen()),
         (route) => false,
       );
     }
+
+    // ===== NEW: Taller toolbar + computed logo height (same as other screens) =====
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final barHeight = isDesktop ? 84.0 : 64.0; // make header taller
+    const vPad = 12.0;                          // keep your existing vertical padding
+    final logoH = barHeight - (vPad * 2);       // logo fills the bar
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -58,6 +63,7 @@ class HomeScreen extends StatelessWidget {
             pinned: true,
             elevation: 0,
             backgroundColor: Colors.transparent,
+            toolbarHeight: barHeight, // <-- important so image isn't constrained to 56
             flexibleSpace: Container(
               decoration: BoxDecoration(gradient: _headerFooterGradient),
               child: SafeArea(
@@ -66,15 +72,16 @@ class HomeScreen extends StatelessWidget {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: _contentMaxWidth),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: vPad),
                       child: _NavBar(
+                        logoHeight: logoH, // <-- pass computed height
                         onLogoTap: () => toWelcome(),
                         onHome: () => toWelcome(),
                         onAbout: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutUsScreen())),
-                         onBook: () => Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(builder: (_) => const HomeScreen()),
-                              (r) => false, // clears the stack so the header "Book" consistently lands on Home
-                            ),
+                        onBook: () => Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const HomeScreen()),
+                          (r) => false, // clears the stack so the header "Book" consistently lands on Home
+                        ),
                         onContact: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactUsScreen())),
                         onSignIn: () => Navigator.of(context).push(AuthPage.route(AuthMode.signIn)),
                         onSignUp: () => Navigator.of(context).push(AuthPage.route(AuthMode.signUp)),
@@ -167,6 +174,7 @@ class _NavBar extends StatelessWidget {
     required this.onSignIn,
     required this.onSignUp,
     required this.onGuest,
+    required this.logoHeight, // NEW
   });
 
   final VoidCallback onLogoTap;
@@ -177,6 +185,7 @@ class _NavBar extends StatelessWidget {
   final VoidCallback onSignIn;
   final VoidCallback onSignUp;
   final VoidCallback onGuest;
+  final double logoHeight; // NEW
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +195,8 @@ class _NavBar extends StatelessWidget {
           onTap: onLogoTap,
           child: Row(
             children: [
-              Image.asset('assets/0.png', height: 56),
+              // was fixed 56; now uses computed height passed from parent
+              Image.asset('assets/0.png', height: logoHeight),
               const SizedBox(width: 10),
               const Text(
                 'BookNow',

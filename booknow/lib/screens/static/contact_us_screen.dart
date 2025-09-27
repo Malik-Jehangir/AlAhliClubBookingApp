@@ -50,6 +50,11 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final barHeight = isDesktop ? 84.0 : 64.0; // taller toolbar
+    const vPad = 12.0;
+    final logoH = barHeight - (vPad * 2); // image fills the bar height
+
     return Scaffold(
       // subtle background ornaments
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -84,6 +89,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                 pinned: true,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
+                toolbarHeight: barHeight, // important
                 flexibleSpace: Container(
                   decoration: BoxDecoration(gradient: _headerFooterGradient),
                   child: SafeArea(
@@ -92,8 +98,9 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: _maxWidth),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: vPad),
                           child: _NavBar(
+                            logoHeight: logoH, // pass computed logo height
                             onLogoTap: () {
                               Navigator.pushAndRemoveUntil(
                                 context,
@@ -138,8 +145,8 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
               SliverToBoxAdapter(
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: _maxWidth),
-                    child: const Padding(
+                    constraints: BoxConstraints(maxWidth: _maxWidth),
+                    child: Padding(
                       padding: EdgeInsets.fromLTRB(20, 28, 20, 8),
                       child: _HeroBanner(),
                     ),
@@ -227,6 +234,7 @@ class _NavBar extends StatelessWidget {
     required this.onSignIn,
     required this.onSignUp,
     required this.onGuest,
+    required this.logoHeight, // NEW
   });
 
   final VoidCallback onLogoTap;
@@ -237,6 +245,7 @@ class _NavBar extends StatelessWidget {
   final VoidCallback onSignIn;
   final VoidCallback onSignUp;
   final VoidCallback onGuest;
+  final double logoHeight; // NEW
 
   TextStyle _linkStyle(bool active) => TextStyle(
         color: Colors.white,
@@ -246,14 +255,13 @@ class _NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
     return Row(
       children: [
         InkWell(
           onTap: onLogoTap,
           child: Row(
             children: [
-              Image.asset('assets/0.png', height: isDesktop ? 56 : 48),
+              Image.asset('assets/0.png', height: logoHeight), // use computed height
               const SizedBox(width: 10),
               const Text(
                 'BookNow',
@@ -404,6 +412,7 @@ class _FormAndInfo extends StatelessWidget {
 }
 
 /* ---------------- CONTACT FORM ---------------- */
+// (unchanged below)
 class _ContactForm extends StatelessWidget {
   const _ContactForm({
     required this.formKey,
@@ -640,38 +649,37 @@ class _ContactInfoPane extends StatelessWidget {
     );
   }
 
-Widget _infoLine(IconData icon, String text, {Color textColor = Colors.black}) {
-  return Row(
-    children: [
-      Icon(icon, color: Colors.black),
-      const SizedBox(width: 8),
-      Text(
-        text,
-        style: TextStyle(color: textColor),
-      ),
-    ],
-  );
-}
-
-Widget _bullet(String text, {Color textColor = Colors.black}) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text("• ", style: TextStyle(color: Colors.black)),
-      Expanded(
-        child: Text(
+  Widget _infoLine(IconData icon, String text, {Color textColor = Colors.black}) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.black),
+        const SizedBox(width: 8),
+        Text(
           text,
           style: TextStyle(color: textColor),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
- 
+  Widget _bullet(String text, {Color textColor = Colors.black}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("• ", style: TextStyle(color: Colors.black)),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(color: textColor),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /* ---------------- FOOTER (same pattern as Welcome/About) ---------------- */
+// (unchanged below)
 class _FooterColumns extends StatelessWidget {
   const _FooterColumns({required this.onLogoTap});
   final VoidCallback onLogoTap;
@@ -828,184 +836,6 @@ class _FooterBottomBar extends StatelessWidget {
       'Version 1.0.0  © ${DateTime.now().year} Al Ahli. All rights reserved.',
       style: const TextStyle(color: Colors.white70),
       textAlign: TextAlign.center,
-    );
-  }
-}
-
-/* ---------------- ORIGINAL FOOTER TYPES (kept, unused) ---------------- */
-// ignore: unused_element
-class _Footer extends StatelessWidget {
-  const _Footer({required this.gradient});
-  final Gradient gradient;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(gradient: gradient),
-      padding: const EdgeInsets.symmetric(vertical: 28),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                          (r) => false,
-                        );
-                      },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset('assets/0.png', height: 104),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'BookNow',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 24,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.calendar_month, color: Colors.white),
-                          const SizedBox(width: 10),
-                          const Text(
-                            'Ready to book?',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const HomeScreen()),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              foregroundColor: Colors.white,
-                              shape: const StadiumBorder(),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
-                            ),
-                            child: const Text('Browse Venues'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 28),
-                LayoutBuilder(
-                  builder: (context, c) {
-                    final isDesktop = c.maxWidth >= 900;
-                    final columns = const [
-                      _FooterColumn(
-                        title: 'About Al Ahli',
-                        links: ['Our Story', 'Mission & Values', 'Facilities', 'Programs'],
-                      ),
-                      _FooterColumn(
-                        title: 'For Players',
-                        links: ['Juniors', 'Adults & Leagues', 'Holiday Camps', 'Performance Pathway'],
-                      ),
-                      _FooterColumn(
-                        title: 'For Venue Owners',
-                        links: ['Partner With Us', 'Host Tournaments', 'Sponsorships', 'Facility Standards'],
-                      ),
-                      _FooterColumn(
-                        title: 'Support',
-                        links: ['Contact Us', 'Privacy Policy', 'Terms & Conditions', 'FAQs'],
-                      ),
-                    ];
-
-                    return isDesktop
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              for (int i = 0; i < columns.length; i++) ...[
-                                Expanded(child: columns[i]),
-                                if (i != columns.length - 1) const SizedBox(width: 12),
-                              ]
-                            ],
-                          )
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              for (int i = 0; i < columns.length; i++) ...[
-                                columns[i],
-                                if (i != columns.length - 1) const SizedBox(height: 18),
-                              ]
-                            ],
-                          );
-                  },
-                ),
-                const SizedBox(height: 24),
-                const Divider(color: Colors.white24, height: 1),
-                const SizedBox(height: 14),
-                const Text(
-                  '© 2025 BookNow • Al Ahli Club — All rights reserved',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FooterColumn extends StatelessWidget {
-  const _FooterColumn({required this.title, required this.links});
-  final String title;
-  final List<String> links;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style:
-              const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
-        ),
-        const SizedBox(height: 10),
-        for (final l in links)
-          InkWell(
-            onTap: () {
-              // clickable, no-op for now
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text(l, style: const TextStyle(color: Colors.white70)),
-            ),
-          ),
-      ],
     );
   }
 }
