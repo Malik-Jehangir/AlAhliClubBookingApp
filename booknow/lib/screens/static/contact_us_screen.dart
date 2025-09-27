@@ -615,52 +615,60 @@ class _ContactInfoPane extends StatelessWidget {
             ]),
             const SizedBox(height: 12),
             _infoLine(Icons.location_on_outlined,
-                'Al Ahli Club, Zinj, Manama, Kingdom of Bahrain'),
+                'Al Ahli Club, Zinj, Manama, Kingdom of Bahrain', textColor: Colors.black),
             const SizedBox(height: 8),
-            _infoLine(Icons.schedule_outlined, 'Office Hours: 9:00 AM – 6:00 PM, Sun–Thu'),
+            _infoLine(Icons.schedule_outlined, 'Office Hours: 9:00 AM – 6:00 PM, Sun–Thu', textColor: Colors.black),
             const SizedBox(height: 8),
-            _infoLine(Icons.phone_in_talk_outlined, '+973 0000 0000'),
+            _infoLine(Icons.phone_in_talk_outlined, '+973 1727 7712', textColor: Colors.black),
             const SizedBox(height: 8),
-            _infoLine(Icons.email_outlined, 'info@alahliclub.bh'),
+            _infoLine(Icons.email_outlined, 'info@alahliclub.bh', textColor: Colors.black),
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 12),
             const Text(
               'Why contact us?',
-              style: TextStyle(fontWeight: FontWeight.w800),
+              style: TextStyle(fontWeight: FontWeight.w800, color: Colors.black),
             ),
             const SizedBox(height: 8),
-            _bullet('Venue bookings and availability'),
-            _bullet('Team registrations and leagues'),
-            _bullet('Coaching programs and holiday camps'),
-            _bullet('Partnerships, sponsorships, and events'),
+            _bullet('Venue bookings and availability', textColor: Colors.black),
+            _bullet('Team registrations and leagues', textColor: Colors.black),
+            _bullet('Coaching programs and holiday camps', textColor: Colors.black),
+            _bullet('Partnerships, sponsorships, and events', textColor: Colors.black),
           ],
         ),
       ),
     );
   }
 
-  Widget _infoLine(IconData icon, String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: Colors.black87),
-        const SizedBox(width: 8),
-        Expanded(child: Text(text)),
-      ],
-    );
-  }
+Widget _infoLine(IconData icon, String text, {Color textColor = Colors.black}) {
+  return Row(
+    children: [
+      Icon(icon, color: Colors.black),
+      const SizedBox(width: 8),
+      Text(
+        text,
+        style: TextStyle(color: textColor),
+      ),
+    ],
+  );
+}
 
-  Widget _bullet(String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text('•  '),
-        SizedBox(width: 2),
-        Expanded(child: Text('')),
-      ],
-    );
-  }
+Widget _bullet(String text, {Color textColor = Colors.black}) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text("• ", style: TextStyle(color: Colors.black)),
+      Expanded(
+        child: Text(
+          text,
+          style: TextStyle(color: textColor),
+        ),
+      ),
+    ],
+  );
+}
+
+ 
 }
 
 /* ---------------- FOOTER (same pattern as Welcome/About) ---------------- */
