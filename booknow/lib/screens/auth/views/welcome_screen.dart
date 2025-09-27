@@ -204,7 +204,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       child: Column(
                         children: const [
                           _AboutRow(
-                            imageAsset: 'assets/2.png',
+                            imageAsset: 'assets/17.png',
                             title: 'Al Ahli Club — Tradition & Passion',
                             text:
                                 'Al Ahli Club Bahrain is one of the Kingdom’s storied community clubs, fostering sportsmanship, teamwork, and local talent across multiple disciplines.',
@@ -212,7 +212,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                           SizedBox(height: 40),
                           _AboutRow(
-                            imageAsset: 'assets/1.png',
+                            imageAsset: 'assets/16.png',
                             title: 'Community at Heart',
                             text:
                                 'From junior programs to competitive squads, Al Ahli’s facilities support players of all levels with coaching, events, and a welcoming atmosphere.',
@@ -430,30 +430,44 @@ class _HeroWithCountdownState extends State<_HeroWithCountdown> {
               ),
             ),
 
-            // countdown
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.35),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _CountBlock(value: days, label: 'days', wide: true),
-                    const SizedBox(width: 18),
-                    _CountBlock(value: hours, label: 'hrs'),
-                    const SizedBox(width: 18),
-                    _CountBlock(value: mins, label: 'min'),
-                    const SizedBox(width: 18),
-                    _CountBlock(value: secs, label: 'sec'),
-                  ],
-                ),
-              ),
-            ),
-
+                  Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Upcoming Events',
+                    style: TextStyle(
+                      fontSize: 60,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 12), // spacing between text and countdown
+                  // countdown
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.35),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _CountBlock(value: days, label: 'days', wide: true),
+                          const SizedBox(width: 18),
+                          _CountBlock(value: hours, label: 'hrs'),
+                          const SizedBox(width: 18),
+                          _CountBlock(value: mins, label: 'min'),
+                          const SizedBox(width: 18),
+                          _CountBlock(value: secs, label: 'sec'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              )
+              ,
             // page dots
             Positioned(
               bottom: 10,
