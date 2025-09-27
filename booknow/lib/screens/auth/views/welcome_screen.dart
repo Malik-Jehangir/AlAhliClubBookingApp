@@ -36,9 +36,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   // hero slideshow
   final _pageCtrl = PageController();
   final _slides = const [
-    _Slide('assets/1.png', 'Book Top Venues', 'Fast, simple, reliable.'),
-    _Slide('assets/2.png', 'Play With Friends', 'Football, padel, hoops & more.'),
-    _Slide('assets/3.png', 'Great Deals Daily', 'Exclusive rates across Bahrain.'),
+    _Slide('assets/13.png', '', ''),
+    _Slide('assets/14.png', '', ''),
+    _Slide('assets/15.png', '', ''),
   ];
   int _page = 0;
   Timer? _auto;
