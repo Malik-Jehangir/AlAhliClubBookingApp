@@ -308,7 +308,7 @@ class _NavBar extends StatelessWidget {
               _HeaderLogo(height: logoHeight), // NEW: fill the taller toolbar
               const SizedBox(width: 10),
               const Text(
-                'BookNow',
+                'Al Ahli Club',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,

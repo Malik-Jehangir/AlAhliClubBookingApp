@@ -300,7 +300,7 @@ class _NavBar extends StatelessWidget {
               Image.asset('assets/0.png', height: logoHeight), // fills toolbar
               const SizedBox(width: 10),
               const Text(
-                'BookNow',
+                'Al Ahli Club',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
