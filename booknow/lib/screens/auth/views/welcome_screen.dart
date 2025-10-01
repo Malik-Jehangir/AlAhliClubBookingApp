@@ -195,35 +195,54 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
 
               // ===== ABOUT (pictures + text) =====
-              SliverToBoxAdapter(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: _maxWidth),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-                      child: Column(
-                        children: const [
-                          _AboutRow(
+           SliverToBoxAdapter(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: _maxWidth),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                  child: Column(
+                    children: const [
+                      Card(
+                        elevation: 6, // controls shadow depth
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(16)),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0), // inner spacing inside the card
+                          child: _AboutRow(
                             imageAsset: 'assets/17.png',
                             title: 'Al Ahli Club — Tradition & Passion',
                             text:
                                 'Al Ahli Club Bahrain is one of the Kingdom’s storied community clubs, fostering sportsmanship, teamwork, and local talent across multiple disciplines.',
                             imageLeft: false,
                           ),
-                          SizedBox(height: 40),
-                          _AboutRow(
+                        ),
+                      ),
+                      SizedBox(height: 40),
+                      Card(
+                        elevation: 6,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(16)),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: _AboutRow(
                             imageAsset: 'assets/16.png',
                             title: 'Community at Heart',
                             text:
                                 'From junior programs to competitive squads, Al Ahli’s facilities support players of all levels with coaching, events, and a welcoming atmosphere.',
                             imageLeft: true,
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
+            ),
+          ),
+
 
               // ===== FOOTER (with sub-links + Ready to book?) =====
               SliverToBoxAdapter(
